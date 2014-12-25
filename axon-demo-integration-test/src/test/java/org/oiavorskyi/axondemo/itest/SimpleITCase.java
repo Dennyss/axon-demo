@@ -21,9 +21,9 @@ import static org.hamcrest.CoreMatchers.*;
 
 @RunWith( SpringJUnit4ClassRunner.class )
 @ContextConfiguration( classes = { Application.Config.class,
-        SimpleIntegrationTest.StubConfiguration.class } )
-@ActiveProfiles( resolver = SimpleIntegrationTest.EnvironmentBasedProfileResolver.class )
-public class SimpleIntegrationTest {
+        SimpleITCase.StubConfiguration.class } )
+@ActiveProfiles( resolver = SimpleITCase.EnvironmentBasedProfileResolver.class )
+public class SimpleITCase {
 
     @Autowired
     private ConnectionFactory rawConnectionFactory;
