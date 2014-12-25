@@ -5,35 +5,28 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.core.io.support.ResourcePropertySource;
+import org.springframework.context.annotation.PropertySource;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.List;
 
 public class Application {
 
+    private static final String[] VALID_PROFILES = new String[] { "production" };
     private static Logger log = LoggerFactory.getLogger(Application.class);
 
     public static void main( String[] args ) throws IOException {
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
         context.register(Config.class);
 
-        // Registering application.properties to enable resolution of production property setting
-        ConfigurableEnvironment env = context.getEnvironment();
-        env.getPropertySources().addFirst(new ResourcePropertySource("/application.properties"));
-
-        // Switching to "production" profile if property is set. This would allow loading of
-        // dedicated @Configuration files with production-specific beans.
-        // Default profile will be used otherwise which is helpful for development and testing
-        boolean isProduction = env.getProperty("application.production", Boolean.class, false);
-        if ( isProduction ) {
-            env.setActiveProfiles("production");
-            log.info("The application.production property is set to true. Switching to " +
-                    "production profile");
-        } else {
-            log.info("The application.production property is set to false or absent. Using " +
-                    "default development profile");
-        }
+        String executionProfile = identifyCurrentExecutionProfile();
+        log.info("Using {} execution profile for Spring context", executionProfile);
+        context.getEnvironment().setActiveProfiles(executionProfile);
 
         context.refresh();
         context.registerShutdownHook();
@@ -41,8 +34,41 @@ public class Application {
         log.info("Application has successfully started");
     }
 
+    /**
+     * Identifies execution profile to be used. Only Spring beans configured within this profile
+     * or no profile at all will be loaded. This opens possibility to switch between different
+     * environments without any code changes.
+     *
+     * This method looks for a file with name "runtime.profile" in the directory from where
+     * process was started and if it exists assumes first line in this file as a name of profile.
+     *
+     * @return name of Spring profile to be used for execution of application
+     */
+    public static String identifyCurrentExecutionProfile() {
+        String result = "default";
+
+        Path pathToRuntimeProfileMarkerFile = FileSystems.getDefault().getPath("runtime.profile");
+        boolean markerExists = Files.exists(pathToRuntimeProfileMarkerFile);
+
+        if ( markerExists ) {
+            try {
+                List<String> values = Files.readAllLines(pathToRuntimeProfileMarkerFile,
+                        Charset.defaultCharset());
+                String profileName = values.get(0);
+                if ( Arrays.binarySearch(VALID_PROFILES, profileName) >= 0 ) {
+                    result = profileName;
+                }
+            } catch ( IOException e ) {
+                // Ignore exception and assume default profile
+            }
+        }
+
+        return result;
+    }
+
     @Configuration
     @ComponentScan( { "org.oiavorskyi.axondemo" } )
+    @PropertySource( "/application.properties" )
     public static class Config {
 
 
