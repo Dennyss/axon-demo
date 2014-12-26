@@ -15,7 +15,7 @@ import javax.jms.ConnectionFactory;
 @RunWith( SpringJUnit4ClassRunner.class )
 @ContextConfiguration(
         classes = { Application.Config.class, AbstractITCase.StubConfiguration.class },
-        initializers = { ExecutionProfileAwareApplicationContextInitializer.class}
+        initializers = { ExecutionProfileAwareApplicationContextInitializer.class }
 )
 public abstract class AbstractITCase {
 
@@ -25,7 +25,7 @@ public abstract class AbstractITCase {
 
         @Bean
         public ConnectionFactory rawConnectionFactory() {
-            return new ActiveMQConnectionFactory();
+            return new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false");
         }
 
     }

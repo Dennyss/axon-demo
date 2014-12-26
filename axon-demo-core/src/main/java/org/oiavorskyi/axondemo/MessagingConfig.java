@@ -2,11 +2,17 @@ package org.oiavorskyi.axondemo;
 
 import com.ibm.mq.jms.MQConnectionFactory;
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.*;
 import org.springframework.jms.connection.CachingConnectionFactory;
+import org.springframework.util.ClassUtils;
 
 import javax.jms.ConnectionFactory;
+import javax.jms.Destination;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 
 @Configuration
 @PropertySources( {
@@ -16,15 +22,49 @@ import javax.jms.ConnectionFactory;
 } )
 public class MessagingConfig {
 
+    private static Logger log = LoggerFactory.getLogger(MessagingConfig.class);
+
+    @Value( "#{environment.getProperty('messaging.connection.pool.size')}" )
+    private int connectionPoolSize;
+
+    @Value( "#{environment.getProperty('messaging.dest.impl.class')}" )
+    private Class<Destination> destinationImplClass;
+
+    // Destinations
+    @Value( "#{environment.getProperty('messaging.dest.inbound.commands')}" )
+    private String inboundCommandsDestinationName;
+
+
     @Bean
-    public ConnectionFactory jmsConnectionFactory(
-            ConnectionFactory rawConnectionFactory,
-            @Value( "#{environment.getProperty('messaging.connection.pool.size')}" ) int poolSize
-    ) {
+    public ConnectionFactory jmsConnectionFactory( ConnectionFactory rawConnectionFactory ) {
         CachingConnectionFactory connFactory = new CachingConnectionFactory(rawConnectionFactory);
-        connFactory.setSessionCacheSize(poolSize);
+        connFactory.setSessionCacheSize(connectionPoolSize);
 
         return connFactory;
+    }
+
+    @Bean
+    public Destination inboundCommandsDestination()
+            throws IllegalAccessException, InstantiationException, InvocationTargetException {
+        return createEnvironmentSpecificDestination(inboundCommandsDestinationName);
+    }
+
+    private Destination createEnvironmentSpecificDestination( String destinationName )
+            throws IllegalAccessException, InvocationTargetException, InstantiationException {
+        log.debug("Creating {} destination using {} class", destinationName, destinationImplClass);
+
+        if ( !ClassUtils.isAssignable(Destination.class, destinationImplClass) ) {
+            log.error("Creation of {} destination failed - {} is not assignable to javax.jms" +
+                    ".Destination. Please check value of property 'messaging.dest.impl.class' in " +
+                    "configuration", destinationName, destinationImplClass);
+            throw new IllegalArgumentException(destinationImplClass +
+                    " is not assignable to javax.jms.Destination");
+        }
+
+        Constructor<Destination> constructor =
+                ClassUtils.getConstructorIfAvailable(destinationImplClass, String.class);
+
+        return constructor.newInstance(destinationName);
     }
 
     @Profile( "default" )
