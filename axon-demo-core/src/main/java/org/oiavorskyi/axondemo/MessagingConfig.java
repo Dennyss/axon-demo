@@ -31,6 +31,9 @@ public class MessagingConfig {
     private Class<Destination> destinationImplClass;
 
     // Destinations
+    @Value( "#{environment.getProperty('messaging.dest.test.status')}" )
+    private String testStatusDestinationName;
+
     @Value( "#{environment.getProperty('messaging.dest.inbound.commands')}" )
     private String inboundCommandsDestinationName;
 
@@ -47,6 +50,12 @@ public class MessagingConfig {
     public Destination inboundCommandsDestination()
             throws IllegalAccessException, InstantiationException, InvocationTargetException {
         return createEnvironmentSpecificDestination(inboundCommandsDestinationName);
+    }
+
+    @Bean
+    public Destination testStatusDestination()
+            throws IllegalAccessException, InstantiationException, InvocationTargetException {
+        return createEnvironmentSpecificDestination(testStatusDestinationName);
     }
 
     private Destination createEnvironmentSpecificDestination( String destinationName )
