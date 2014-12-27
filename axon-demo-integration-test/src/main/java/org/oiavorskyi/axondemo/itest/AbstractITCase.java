@@ -2,6 +2,9 @@ package org.oiavorskyi.axondemo.itest;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.broker.BrokerService;
+import org.axonframework.eventstore.EventStore;
+import org.axonframework.eventstore.fs.FileSystemEventStore;
+import org.axonframework.eventstore.fs.SimpleEventFileResolver;
 import org.junit.runner.RunWith;
 import org.oiavorskyi.axondemo.Application;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +19,9 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import javax.jms.ConnectionFactory;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 
 @RunWith( SpringJUnit4ClassRunner.class )
@@ -67,6 +73,12 @@ public abstract class AbstractITCase {
             broker.start();
 
             return broker;
+        }
+
+        @Bean
+        EventStore eventStore() throws IOException {
+            Path tempDirectory = Files.createTempDirectory("axon-demo-events");
+            return new FileSystemEventStore(new SimpleEventFileResolver(tempDirectory.toFile()));
         }
 
     }
