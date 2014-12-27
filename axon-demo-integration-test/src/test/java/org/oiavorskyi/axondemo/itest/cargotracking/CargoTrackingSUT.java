@@ -53,5 +53,15 @@ public class CargoTrackingSUT {
             this.correlationId = correlationId;
             this.timestamp = timestamp;
         }
+
+        @Override
+        public String toString() {
+            final StringBuilder sb = new StringBuilder("StartCargoTrackingMessage{");
+            sb.append("cargoId='").append(cargoId).append('\'');
+            sb.append(", correlationId='").append(correlationId).append('\'');
+            sb.append(", timestamp='").append(timestamp).append('\'');
+            sb.append('}');
+            return sb.toString();
+        }
     }
 }

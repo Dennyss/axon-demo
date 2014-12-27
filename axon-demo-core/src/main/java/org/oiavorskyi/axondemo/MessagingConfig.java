@@ -4,9 +4,12 @@ import com.ibm.mq.jms.MQConnectionFactory;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.*;
 import org.springframework.jms.connection.CachingConnectionFactory;
+import org.springframework.jms.core.JmsTemplate;
+import org.springframework.jms.listener.SimpleMessageListenerContainer;
 import org.springframework.util.ClassUtils;
 
 import javax.jms.ConnectionFactory;
@@ -37,6 +40,10 @@ public class MessagingConfig {
     @Value( "#{environment.getProperty('messaging.dest.inbound.commands')}" )
     private String inboundCommandsDestinationName;
 
+    @Bean
+    public JmsTemplate jmsTemplate(ConnectionFactory jmsConnectionFactory) {
+        return new JmsTemplate(jmsConnectionFactory);
+    }
 
     @Bean
     public ConnectionFactory jmsConnectionFactory( ConnectionFactory rawConnectionFactory ) {
@@ -57,6 +64,23 @@ public class MessagingConfig {
             throws IllegalAccessException, InstantiationException, InvocationTargetException {
         return createEnvironmentSpecificDestination(testStatusDestinationName);
     }
+
+    @Bean
+    @Autowired
+    public SimpleMessageListenerContainer commandsJmsListener(
+            CommandsListener listener,
+            ConnectionFactory jmsConnectionFactory,
+            Destination inboundCommandsDestination ) {
+        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
+
+        container.setConnectionFactory(jmsConnectionFactory(jmsConnectionFactory));
+        container.setDestination(inboundCommandsDestination);
+        container.setConcurrentConsumers(1);
+        container.setMessageListener(listener);
+
+        return container;
+    }
+
 
     private Destination createEnvironmentSpecificDestination( String destinationName )
             throws IllegalAccessException, InvocationTargetException, InstantiationException {

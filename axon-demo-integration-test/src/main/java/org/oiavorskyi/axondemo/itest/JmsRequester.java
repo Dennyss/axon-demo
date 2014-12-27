@@ -67,13 +67,11 @@ public class JmsRequester {
                 final String testCorrelationID = UUID.randomUUID().toString();
 
                 // Create the consumer first!
-                consumer = session.createConsumer(statusReplyDestination, "TestCorrelationID = '" +
-                        testCorrelationID + "'");
+                consumer = session.createConsumer(statusReplyDestination,
+                        "TestCorrelationID = '" + testCorrelationID + "'");
                 // TODO: Valid message type
                 final TextMessage textMessage = session.createTextMessage((String) msg);
                 textMessage.setStringProperty("TestCorrelationID", testCorrelationID);
-                textMessage.setStringProperty("TestStatusReplyTo", statusReplyDestination
-                        .toString());
 
                 // Send the request second!
                 producer = session.createProducer(requestDestination);

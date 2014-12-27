@@ -63,6 +63,7 @@ public abstract class AbstractITCase {
             broker.setBrokerName("integration");
             broker.setPersistent(false);
             broker.addConnector("tcp://localhost:61616");
+            broker.setUseShutdownHook(false);
             broker.start();
 
             return broker;

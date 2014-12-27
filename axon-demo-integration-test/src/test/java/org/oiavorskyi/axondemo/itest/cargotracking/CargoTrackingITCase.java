@@ -17,7 +17,7 @@ public class CargoTrackingITCase extends AbstractITCase {
 
     @Test
     public void shouldStartNewTrackingByRequest() throws Exception {
-        String status = api.startCargoTracking("a", "b", "c").get(100, TimeUnit.MILLISECONDS);
+        String status = api.startCargoTracking("a", "b", "c").get(1000, TimeUnit.MILLISECONDS);
 
         assertThat(status, is("OK"));
     }
