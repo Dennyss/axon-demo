@@ -22,7 +22,7 @@ import java.util.concurrent.Future;
  * not interfere with production code which might use these headers for other reasons.
  */
 @Component
-public class JmsRequestor {
+public class JmsRequester {
 
     private ExecutorService executor = Executors.newSingleThreadExecutor();
 
@@ -30,7 +30,7 @@ public class JmsRequestor {
     private final Destination testStatusDestination;
 
     @Autowired
-    public JmsRequestor( final JmsTemplate jmsTemplate, final Destination testStatusDestination ) {
+    public JmsRequester( final JmsTemplate jmsTemplate, final Destination testStatusDestination ) {
         this.jmsTemplate = jmsTemplate;
         this.testStatusDestination = testStatusDestination;
     }
@@ -72,7 +72,8 @@ public class JmsRequestor {
                 // TODO: Valid message type
                 final TextMessage textMessage = session.createTextMessage((String) msg);
                 textMessage.setStringProperty("TestCorrelationID", testCorrelationID);
-                textMessage.setStringProperty("TestStatusReplyTo", statusReplyDestination.toString());
+                textMessage.setStringProperty("TestStatusReplyTo", statusReplyDestination
+                        .toString());
 
                 // Send the request second!
                 producer = session.createProducer(requestDestination);

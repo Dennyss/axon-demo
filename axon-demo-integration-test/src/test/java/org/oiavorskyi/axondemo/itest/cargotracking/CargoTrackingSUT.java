@@ -1,6 +1,6 @@
 package org.oiavorskyi.axondemo.itest.cargotracking;
 
-import org.oiavorskyi.axondemo.itest.JmsRequestor;
+import org.oiavorskyi.axondemo.itest.JmsRequester;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,8 +25,9 @@ public class CargoTrackingSUT {
 
     private static class JmsAPIImpl implements API {
 
+        @SuppressWarnings( "SpringJavaAutowiringInspection" )
         @Autowired
-        private JmsRequestor requestor;
+        private JmsRequester requester;
 
         @Autowired
         private Destination inboundCommandsDestination;
@@ -34,8 +35,10 @@ public class CargoTrackingSUT {
         @Override
         public Future<String> startCargoTracking( String cargoId, String correlationId,
                                                   String timestamp ) {
-            return requestor.sendRequest("test", inboundCommandsDestination);
-//                    new StartCargoTrackingMessage(cargoId, correlationId, timestamp));
+            // So far we support only String messages but JSON will be added soon
+            return requester.sendRequest(
+                    new StartCargoTrackingMessage(cargoId, correlationId, timestamp).toString(),
+                    inboundCommandsDestination);
         }
     }
 
