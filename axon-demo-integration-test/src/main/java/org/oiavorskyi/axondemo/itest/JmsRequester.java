@@ -77,7 +77,7 @@ public class JmsRequester {
                 producer = session.createProducer(requestDestination);
                 producer.send(requestDestination, textMessage);
 
-                // Block on receiving the response with a timeout
+                // Block on receiving the response
                 Message response = consumer.receive();
 
                 if ( response instanceof TextMessage ) {
