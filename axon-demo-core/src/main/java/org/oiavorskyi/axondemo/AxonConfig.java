@@ -9,7 +9,6 @@ import org.axonframework.eventstore.fs.SimpleEventFileResolver;
 import org.oiavorskyi.axondemo.aggregates.CargoTracking;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -33,30 +32,11 @@ public class AxonConfig {
     }
 
 
-    @Profile( "default" )
-    @Configuration
-    public static class DevelopmentConfig {
-
-        @Bean
-        EventStore eventStore() throws IOException {
-            // TODO: Initialize proper Dev version of store
-            Path tempDirectory = Files.createTempDirectory("axon-demo-events");
-            return new FileSystemEventStore(new SimpleEventFileResolver(tempDirectory.toFile()));
-        }
-
-    }
-
-    @Profile( "production" )
-    @Configuration
-    public static class ProductionConfig {
-
-        @Bean
-        EventStore eventStore() throws IOException {
-            // TODO: Initialize proper Production version of store
-            Path tempDirectory = Files.createTempDirectory("axon-demo-events");
-            return new FileSystemEventStore(new SimpleEventFileResolver(tempDirectory.toFile()));
-        }
-
+    @Bean
+    EventStore eventStore() throws IOException {
+        // TODO: Change to the proper version of event store (e.g. RDBMS or Redis-based)
+        Path tempDirectory = Files.createTempDirectory("axon-demo-events");
+        return new FileSystemEventStore(new SimpleEventFileResolver(tempDirectory.toFile()));
     }
 
 }
